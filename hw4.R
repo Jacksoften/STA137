@@ -42,4 +42,35 @@ tsdata = as.numeric(tsdata)
 t = 1 : length(tsdata)
 
 # plot
-plot(t, tsdata)
+plot(t, tsdata, xlab = "", ylab = "", main = "")
+
+# method 1: Least squares estimation
+# try polynomial function with different parameters
+# based on the scatter plot we choose to start with
+# quadratic regression
+
+qtfit = lm(tsdata~poly(t,2,raw = TRUE))
+lines(qtfit$fitted.values)
+cbfit = lm(tsdata~poly(t,3,raw = TRUE))
+lines(cbfit$fitted.values)
+random = lm(tsdata~poly(t,6,raw=TRUE))
+lines(random$fitted.values)
+# Q: how should we choose the regression model when quadratic and cubic do not have
+# much difference, but it goes larger when power becomes higher
+
+# method 2: Smoothing with Moving Averages
+# a) two sides
+ma_two_sides_2 = filter(tsdata, sides = 2, filter = rep(1,5)/5)
+plot(t, ma_two_sides_2, xlab = "", ylab = "", main = "", type = "l")
+ma_two_sides_5 = filter(tsdata, sides = 2, filter = rep(1,11)/11)
+lines(t, ma_two_sides_5)
+# b) one side
+ma_one_side_2 = filter(tsdata, sides = 1, rep(1,3) / 3)
+lines(t, ma_one_side_2)
+
+# method 3: Differencing
+d1 = diff(tsdata)
+d2 = diff(d1)
+par(mfrow = c(1, 2))
+plot.ts(d1, xlab = "", ylab = "")
+plot.ts(d2, xlab = "", ylab = "")
