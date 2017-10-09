@@ -16,13 +16,10 @@ strikes_raw = read.table(file = "strikes.dat")
 strikes = ts(strikes_raw, start = 1951)
 t = 1 : length(strikes)
 
-<<<<<<< HEAD
-=======
 # origin plot
 plot(strikes, xlab = "", ylab = "", main = "", type = "b")
 
 # set filter
->>>>>>> bc0890d... added some comments
 ma2 = filter(strikes, sides = 2, rep(1,5) / 5)
 ma4 = filter(strikes, sides = 2, rep(1,9) / 9)
 ma5 = filter(strikes, sides = 2, rep(1,11) / 11)
