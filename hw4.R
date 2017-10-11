@@ -10,25 +10,32 @@
 # apply any of the three methods of Section 1.3 to your data.
 
 # 1.
+# set working directory
 getwd()
 setwd("/home/yunzheli/class/sta137/Data/")
+
+# read data
 strikes_raw = read.table(file = "strikes.dat")
+
+# convert to time series data
 strikes = ts(strikes_raw, start = 1951)
+
+# set time variable
 t = 1 : length(strikes)
 
-<<<<<<< HEAD
-=======
 # origin plot
-plot(strikes, xlab = "", ylab = "", main = "", type = "b")
+plot(strikes, xlab = "", ylab = "", main = "", type = "l")
 
 # set filter
->>>>>>> bc0890d... added some comments
 ma2 = filter(strikes, sides = 2, rep(1,5) / 5)
 ma4 = filter(strikes, sides = 2, rep(1,9) / 9)
 ma5 = filter(strikes, sides = 2, rep(1,11) / 11)
-plot(t, ma2, xlab = "", ylab = "", main = "", type = "l")
+
+lines(t, ma2, col = "red")
 lines(t, ma4)
 lines(t, ma5)
+
+
 
 # 2.
 data = read.table("multiTimeline.csv", stringsAsFactors = FALSE, fill = TRUE, skip = 3)
@@ -36,20 +43,24 @@ data = data[[1]]
 
 # clean data
 # seperate string with ','
-tsdata = lapply(data, function(x) strsplit(x, ","))
+sep_data = lapply(data, function(x) strsplit(x, ","))
 
 # unlist
-tsdata = unlist(tsdata)
+sep_data = unlist(sep_data)
 
 # choose numbers
-tsdata = tsdata[2*(1:(length(tsdata)/2))]
+tsdata = sep_data[2*(1:(length(sep_data)/2))]
+date_data = sep_data[2*(1:(length(sep_data)/2)) - 1]
 tsdata = as.numeric(tsdata)
+date_data = as.Date(date_data)
 
 # set t
 t = 1 : length(tsdata)
-
 # plot
 plot(t, tsdata, xlab = "", ylab = "", main = "")
+
+# another way to build time series model
+plot(tsdata~date_data, xlab = "", ylab = "", main = "Data is from 2016-10-09 to 2017-10-01")
 
 # method 1: Least squares estimation
 # try polynomial function with different parameters

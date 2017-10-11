@@ -15,8 +15,8 @@ t = 1 : length(lakeModel)
 lsfit = lm(lakeModel~t)
 
 # plotting
-plot(t, lakeModel, xlab = "", ylab = "", main = "")
-lines(lsfit$fit)
+plot(t, lakeModel, xlab = "", ylab = "", main = "", type = "l")
+lines(lsfit$fit, col = "blue")
 
 ma2 = filter(lakeModel, sides = 2, filter = rep(1,5) / 5) # 5 = 2*2 + 1, q = 2
 ma10 = filter(lakeModel, sides=2, rep(1,21)/21) # 21 = 2*10 + 1, q = 10
@@ -26,21 +26,18 @@ lines(t, ma10)
 lines(t, ma35)
 
 # with quadratic polynomials
-
 qdfit = lm(lakeModel~t + I(t^2))
-try = lm(lakeModel~poly(t,2,raw = TRUE))
-plot(t, lakeModel, xlab = "", ylab = "", main = "")
+plot(t, lakeModel, xlab = "", ylab = "", main = "", type = "l")
 lines(qdfit$fit)
-lines(try$fitted.values)
+# alternative method
+# try = lm(lakeModel~poly(t,2,raw = TRUE))
+# lines(try$fitted.values)
+
+
 # with cubic polynomials
-
 cbfit = lm(lakeModel~I(t) + I(t^2) + I(t^3))
-try2 = lm(lakeModel~poly(t,3,raw=TRUE))
-plot(t, lakeModel, xlab = "", ylab = "", main = "")
 lines(cbfit$fit)
-lines(try2$fitted.values)
-# why does quadratic and cubit have the same shape?
-
+summary(qdfit)
 
 # spencer's 15-point moving average
 a =c(-3, -6, -5, 3, 21, 46, 67, 74, 67, 46, 21, 3, -5, -6, -3)/320
