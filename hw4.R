@@ -92,3 +92,9 @@ d2 = diff(d1)
 par(mfrow = c(1, 2))
 plot.ts(d1, xlab = "", ylab = "")
 plot.ts(d2, xlab = "", ylab = "")
+
+
+
+
+library(googleVis)
+library(gtrendsR)
