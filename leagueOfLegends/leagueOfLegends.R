@@ -1,4 +1,4 @@
-# Author: Yunzhe Li
+  # Author: Yunzhe Li
 # Date: 10/25
 # Description:
 # Analysis of online game - League of Legends searched on Google
@@ -41,18 +41,20 @@ t = 1:length(lol_num_filtered)
 fitmodel = lm(lol_t_filtered~poly(t, degree = 5))
 plot(t, lol_t_filtered, type= "l", xlab = "", ylab = "" )
 lines(fitmodel$fitted.values)
+AIC(fitmodel)
+
+
+models = lapply(1:6, function(x) lm(lol_t_filtered~poly(t, degree = x)))
+sapply(models, AIC)
+sapply(models, BIC)
+sapply(models, function(x) lines(x$fitted))
+
 
 
 # By looking at the graph, we realize that there are some peak happens seasonally.
 # After searching online, we realize that those might be caused by world championship
 # which happends at sep. to oct. The championship started from 2011
-# S1: Jun.
-# S2: Oct.
-# S3: Sep-Oct.
-# S4: Sep-Oct
-# S5: Oct
-# S6: Oct
-# S7: Oct
+# S1: Jun. # S2: Oct. # S3: Sep-Oct. # S4: Sep-Oct # S5: Oct # S6: Oct # S7: Oct
 
 
 # design matrix.
@@ -71,10 +73,14 @@ X = as.matrix(lol_num_filtered)
 new_x = design_M %*% solve(t(design_M) %*% design_M) %*% t(design_M) %*% X
 lines(new_x, col = "blue")
 
+leftover = X - new_x
+plot(leftover, type = "l")
+acf(leftover)
 
+##########################################################
+# there is not a very obvious seasonality, we may not consider it.
 
-
-
+# the approach below is not good
 diff_value = lol_num_filtered - qtmodel$fitted.values
 plot(t, diff_value, type = "l")
 
