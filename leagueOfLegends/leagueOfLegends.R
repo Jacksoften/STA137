@@ -47,8 +47,6 @@ AIC(fitmodel)
 models = lapply(1:6, function(x) lm(lol_t_filtered~poly(t, degree = x)))
 sapply(models, AIC)
 sapply(models, BIC)
-sapply(models, function(x) lines(x$fitted))
-
 
 
 # By looking at the graph, we realize that there are some peak happens seasonally.
@@ -58,49 +56,20 @@ sapply(models, function(x) lines(x$fitted))
 
 
 # design matrix.
-championShip = c(sprintf("201%d-09", 3:4), sprintf("201%d-10", (2:7)), "2011-06")
+championShip = c(sprintf("201%d-09", 3:4), sprintf("201%d-10", c(2:3,5:7)))
 champ_indices = as.vector(sapply(championShip, function(x) grep(x,lol_date_filtered)))
 lol_num_filtered[champ_indices]
 first_col = rep(0,length(lol_num_filtered))
 first_col[champ_indices] = 1
-design_M = matrix(c(first_col, 
-                    rep(1,length(lol_num_filtered)),
-                    t,
-                    t^2,
-                    t^3),
-                  ncol  = 5)
-X = as.matrix(lol_num_filtered)
-new_x = design_M %*% solve(t(design_M) %*% design_M) %*% t(design_M) %*% X
+selected_model = lm(lol_t_filtered~first_col+poly(t,degree = 5))
+AIC(selected_model)
+BIC(selected_model)
+
+plot(t, lol_t_filtered, type= "l", xlab = "", ylab = "" )
+lines(selected_model$fitted.values, col = "red")
 lines(new_x, col = "blue")
 
 leftover = X - new_x
 plot(leftover, type = "l")
 acf(leftover)
-
-##########################################################
-# there is not a very obvious seasonality, we may not consider it.
-
-# the approach below is not good
-diff_value = lol_num_filtered - qtmodel$fitted.values
-plot(t, diff_value, type = "l")
-
-acf(lol_t_filtered)
-
-# due to the length, we cannot make a matrix for this data set
-# so I decide to elimilate the first 10 data points
-updated_data = lol_t_filtered[-(1:10)]
-Y = matrix(updated_data, ncol = 12, byrow = TRUE)
-new_t = 1 : length(updated_data)
-new_model = lm(updated_data~poly(new_t, degree = 3))
-M = matrix(new_model$fitted.values, ncol = 12, byrow = TRUE)
-
-Y - M
-mu = apply(t(Y-M), 1, function(x) sum(x)/7)
-MU = matrix(rep(mu,7), ncol = 12, byrow = TRUE)
-plot(rep(mu, 12), type = "l")
-mu_bar = mean(mu)
-S = MU + mu_bar
-res = Y - M - S
-plot(as.vector(res))
-lines(as.vector(res))
 
