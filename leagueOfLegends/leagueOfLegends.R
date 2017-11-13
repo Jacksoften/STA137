@@ -69,7 +69,15 @@ plot(t, lol_t_filtered, type= "l", xlab = "", ylab = "" )
 lines(selected_model$fitted.values, col = "red")
 lines(new_x, col = "blue")
 
-leftover = X - new_x
-plot(leftover, type = "l")
-acf(leftover)
+# de-trend
+res = X - new_x
+
+# checking the normality of the residule
+qqnorm(res)
+qqline(res)
+
+# checking the stationarity of the rest part
+plot(res, type = "l")
+acf(res)
+pacf(res)
 
