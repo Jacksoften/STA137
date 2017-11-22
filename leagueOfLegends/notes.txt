@@ -1,0 +1,13 @@
+model selection of polynomial regression
+
+(solved by using auto.arima() in forecast package)
+(alternative solution: using arima() function and manully input AR and MA orders)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Problem:
+The PACF graph shows that we have MA(1) process.
+Combining ACF and PACF plots, we have model ARMA(1,1)
+But the auto.arima() function returns us that the ARMA(1,0) model
+has hte smallest aic.
+
+
