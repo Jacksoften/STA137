@@ -3,7 +3,7 @@
 # Description:
 # Analysis of online game - League of Legends searched on Google
 # Data provider: Google Trend
-
+setwd("leagueOfLegends/")
 data = readRDS("league")
 num = as.numeric(data[,1])
 dat = data[,2]
@@ -44,23 +44,44 @@ plot(t, lol_t, type= "l", xlab = "", ylab = "" )
 lines(selected_model$fitted.values, col = "blue")
 
 # de-trend
-res = num - selected_model$fitted.values
+res = lol_t - selected_model$fitted.values
 
 
 # checking the normality of the residule
 qqnorm(res)
 qqline(res)
+hist(res, breaks = 20)
 
 # checking the stationarity of the rest part
 plot(res, type = "l")
-acf(res)
-pacf(res)
+acf(res) # MA 1
+pacf(res) # AR 1
 
-# we should do some model determination. We 
+# fitModel1 = arima(res, order = c(1,0,0))
+# fitModel2 = arima(res, order = c(1,0,1))
+# plot(fitModel1$residuals)
+# lines(fitModel2$residuals, col = "green")
+# lines(fitModel1$residuals, col = "yellow")
+# fitModel1$aic
+# fitModel2$aic
 
+# using package "forecast" to get pi's and theta's
+library(forecast)
+fitModel = auto.arima(res)
+plot(res, type = "l")
+lines(fitModel$fitted, col = "red")
 
-# guess model: xt = (phi)xt-1 + zt
-plot.ts(arima.sim(list(order=c(1,0,4), ar = 0.8,ma = c(0.3,0.4,0.5,0.7)), n = 100))
+phi1 = fitModel$coef
+names(phi1) = NULL
 
-
-# we can do some prediction.
+last_element = res[length(res)]
+names(last_element) = length(res) + 1
+predic = phi1*last_element
+res_new = c(res, predic)
+for(i in 1:10)
+{
+  predic = phi1*res_new[length(res_new)]
+  names(predic) = length(res_new) + 1
+  res_new = c(res_new, predic)
+}
+plot(res_new, type = "l")
