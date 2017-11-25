@@ -11,31 +11,55 @@ lol_t = ts(num, start = c(2009,11), freq = 12)
 plot(lol_t, main = "League of Legends",
      sub = "made by Yunzhe Li", xlab = "time", ylab = "frequnce")
 
+# method 1
 # polynomial fitting
 
 # checking different models
+t = 1:length(num)
 models = lapply(1:6, function(x) lm(lol_t~poly(t, degree = x)))
 sapply(models, AIC)
 sapply(models, BIC)
 
 # choose power 5
-t = 1:length(num)
 fitmodel = lm(lol_t~poly(t, degree = 5))
 plot(t, lol_t, type= "l", xlab = "", ylab = "" )
 lines(fitmodel$fitted.values)
 
 # try to de-seaonality
-de_trend = lol_t-fitmodel$fitted.values
-de_trend_matrix = matrix(c(rep(NA,10),de_trend,rep(NA,2)), ncol = 12, byrow = TRUE)
-trend_mean = apply(t(de_trend_matrix),1,function(x) mean(x, na.rm = TRUE))
-seasonality_matrix = rep(trend_mean, nrow(de_trend_matrix)-1)
-plot(t, seasonality_matrix, type = "l")
-de_seasonality = de_trend - seasonality_matrix
+de_trend1 = lol_t-fitmodel$fitted.values
+de_trend_matrix1 = matrix(c(rep(NA,10),de_trend1,rep(NA,2)), ncol = 12, byrow = TRUE)
+trend_mean1 = apply(t(de_trend_matrix1),1,function(x) mean(x, na.rm = TRUE))
+seasonality_matrix1 = rep(trend_mean1, nrow(de_trend_matrix1)-1)
+plot(t, seasonality_matrix1, type = "l")
+de_seasonality1 = de_trend1 - seasonality_matrix1
 
 plot(t, lol_t, type= "l", xlab = "", ylab = "" )
-lines(seasonality_matrix + fitmodel$fitted.values, col = "red")
+lines(seasonality_matrix1 + fitmodel$fitted.values, col = "red")
 
-plot(t, de_seasonality, type = "l")
+# checking residules
+plot(t, de_seasonality1, type = "l") # the left part looks stationary
+qqnorm(de_seasonality1)
+qqline(de_seasonality1)
+hist(de_seasonality1)
+
+# model selection
+acf(de_seasonality1)
+pacf(de_seasonality1)
+arima(de_seasonality1, order = c(1,0,1))
+
+library(forecast)
+auto.arima(de_seasonality1, max.Q = 0, max.P = 0)
+
+ma1 = arima(de_seasonality1, order = c(0,0,1)) # Xt = Zt + 0.4279*Zt-1
+plot(fitted(ma1))
+
+matrix(seasonality_matrix1, ncol = 12, byrow = TRUE)
+fitted(fitmodel) + unlist(seasonality_matrix1)
+
+# forecast
+
+
+# method 2
 
 # By looking at the graph, we realize that there are some peak happens seasonally.
 # After searching online, we realize that those might be caused by world championship
@@ -100,7 +124,6 @@ pacf(de_seasonality2)
 # fitModel2$aic
 
 # using package "forecast" to get pi's and theta's
-library(forecast)
 fitModel = auto.arima(res)
 plot(res, type = "l")
 lines(fitModel$fitted, col = "red")
