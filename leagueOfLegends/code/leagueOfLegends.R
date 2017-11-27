@@ -92,6 +92,8 @@ de_seasonality2 = res - seasonality2
 plot(t, lol_t, type= "l", xlab = "", ylab = "" )
 lines(selected_model$fitted.values+seasonality2, col = "blue")
 
+plot(selected_model$fitted.values+seasonality2, type = "l")
+
 plot(t, de_seasonality2, type = 'l')
 
 # try to put the dummy variable into the seasonality part.
@@ -115,32 +117,11 @@ pacf(res) # AR 1
 acf(de_seasonality2)
 pacf(de_seasonality2)
 
-# fitModel1 = arima(res, order = c(1,0,0))
-# fitModel2 = arima(res, order = c(1,0,1))
-# plot(fitModel1$residuals)
-# lines(fitModel2$residuals, col = "green")
-# lines(fitModel1$residuals, col = "yellow")
-# fitModel1$aic
-# fitModel2$aic
-
 # using package "forecast" to get pi's and theta's
 fitModel = auto.arima(res)
 plot(res, type = "l")
 lines(fitModel$fitted, col = "red")
 
-phi1 = fitModel$coef
-names(phi1) = NULL
-
-last_element = res[length(res)]
-names(last_element) = length(res) + 1
-predic = phi1*last_element
-res_new = c(res, predic)
-for(i in 1:10)
-{
-  predic = phi1*res_new[length(res_new)]
-  names(predic) = length(res_new) + 1
-  res_new = c(res_new, predic)
-}
-plot(res_new, type = "l")
-# checking different models
-
+# prediction for stationary part
+pred = predict(fitModel)
+pred$pred
