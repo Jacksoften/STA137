@@ -5,8 +5,10 @@
 # Data provider: Google Trend
 setwd("./file")
 data = readRDS("league")
-num = as.numeric(data[,1])
-dat = data[,2]
+num = as.numeric(data[,1])[1:84]
+num_pred = as.numeric(data[,1])[85:96]
+dat = data[,2][1:84]
+dat_pred = data[,2][85:96]
 lol_t = ts(num, start = c(2009,11), freq = 12)
 plot(lol_t, main = "League of Legends",
      sub = "made by Yunzhe Li", xlab = "time", ylab = "frequnce")
@@ -27,6 +29,7 @@ lines(fitmodel$fitted.values)
 
 # try to de-seaonality
 de_trend1 = lol_t-fitmodel$fitted.values
+plot(de_trend1, type = 'l')
 de_trend_matrix1 = matrix(c(rep(NA,10),de_trend1,rep(NA,2)), ncol = 12, byrow = TRUE)
 trend_mean1 = apply(t(de_trend_matrix1),1,function(x) mean(x, na.rm = TRUE))
 seasonality_matrix1 = rep(trend_mean1, nrow(de_trend_matrix1)-1)
@@ -67,7 +70,7 @@ fitted(fitmodel) + unlist(seasonality_matrix1)
 # S1: Jun. # S2: Oct. # S3: Sep-Oct. # S4: Sep-Oct # S5: Oct # S6: Oct # S7: Oct
 
 # design matrix.
-championShip = c(sprintf("201%d-09", 3:4), sprintf("201%d-10", c(2:3,5:7)))
+championShip = c(sprintf("201%d-09", 3:4), sprintf("201%d-10", c(2:3,5:6)))
 champ_indices = as.vector(sapply(championShip, function(x) grep(x,dat)))
 num[champ_indices]
 first_col = rep(0,length(num))
@@ -79,10 +82,13 @@ BIC(selected_model)
 plot(t, lol_t, type= "l", xlab = "", ylab = "" )
 lines(selected_model$fitted.values, col = "blue")
 
+plot(selected_model$fitted.values, type = 'l')
+
 # de-trend
 res = lol_t - selected_model$fitted.values
 
 # de-seasonality
+plot(res, type="l")
 de_trend_matrix2 = matrix(c(rep(NA,10),res,rep(NA,2)), ncol = 12, byrow = TRUE)
 trend_mean2 = apply(t(de_trend_matrix2),1,function(x) mean(x, na.rm = TRUE))
 seasonality2 = rep(trend_mean2, nrow(de_trend_matrix2)-1)
@@ -96,6 +102,8 @@ plot(selected_model$fitted.values+seasonality2, type = "l")
 
 plot(t, de_seasonality2, type = 'l')
 
+plot(t, res, type = 'l')
+lines(t,de_seasonality2, col = "blue")
 # try to put the dummy variable into the seasonality part.
 
 
@@ -123,5 +131,28 @@ plot(res, type = "l")
 lines(fitModel$fitted, col = "red")
 
 # prediction for stationary part
-pred = predict(fitModel)
-pred$pred
+pred_s = forecast(fitModel, h=12, level = c(0.95))
+rand_pred = data.frame(t = pred_s$mean, t = pred_s$lower, t = pred_s$upper)
+
+# oct 2017 is another championship month
+new_time = (length(num)+1):(length(num)+12)
+new_data = data.frame(t = new_time)
+
+spike_vector = c(rep(0,11),1) # Oct. is championship month, which is the last one in prediciton month
+
+trymodel = lm(lol_t~first_col+t+I(t^2)+I(t^3)+I(t^4)+I(t^5))
+M = matrix(c(rep(1,12), spike_vector, new_time, new_time^2, new_time^3, new_time^4, new_time^5), ncol = 7)
+V = matrix(trymodel$coefficients)
+smooth_pred = M%*%V
+whole_pred = sapply(1:3, function(k) rand_pred[,k]+smooth_pred)
+
+plot(t, lol_t, type= "l", xlab = "", ylab = "", xlim = c(0,100))
+lines(new_time, whole_pred[,1], col="blue")
+lines(new_time, whole_pred[,2], col="red")
+lines(new_time, whole_pred[,3], col="red")
+
+lines(new_time, num_pred, col = "brown")
+
+# not a good example
+# some = auto.arima(num)
+# plot(forecast(some, h=12))
