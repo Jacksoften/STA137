@@ -10,4 +10,12 @@ Combining ACF and PACF plots, we have model ARMA(1,1)
 But the auto.arima() function returns us that the ARMA(1,0) model
 has hte smallest aic.
 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+test the residual after arima model
 
+prediction:
+forecast() in R
+
+
+package: forecast
+packgae: astsa
