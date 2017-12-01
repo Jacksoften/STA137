@@ -76,6 +76,8 @@ num[champ_indices]
 first_col = rep(0,length(num))
 first_col[champ_indices] = 1
 selected_model = lm(lol_t~first_col+poly(t,degree = 5))
+selected_model_fixed = lm(lol_t~first_col+poly(t,degree = 5, raw = TRUE)) 
+# raw = TRUE means not change the basis to orthonormal basis
 AIC(selected_model)
 BIC(selected_model)
 
@@ -156,3 +158,27 @@ lines(new_time, num_pred, col = "brown")
 # not a good example
 # some = auto.arima(num)
 # plot(forecast(some, h=12))
+
+
+
+# spectral analysis
+plot(t,res,type='l')
+new_res = num - trymodel$fitted.values
+spec = spec.pgram(new_res, taper = 0, log = "no")
+spec$freq
+spec$spec
+index = which(spec$spec>40)[-2]
+my_freq = spec$freq[index]
+lower = index - 1
+upper = index + 1
+new_index = c(index, lower, upper)
+sum(spec$spec[new_index])/sum(spec$spec)
+
+
+cos = sapply(my_freq, function(x) cos(2*pi*t*(x)))
+sin = sapply(my_freq, function(x) sin(2*pi*t*(x)))
+
+reg = lm(res~cos[,1]+sin[,1]+cos[,2]+sin[,2])
+plot(reg$fitted.values, type = 'l')
+plot(t,res,type='l')
+lines(reg$fitted.values, type = 'l', col = "red")
