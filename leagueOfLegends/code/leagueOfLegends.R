@@ -182,3 +182,24 @@ reg = lm(res~cos[,1]+sin[,1]+cos[,2]+sin[,2])
 plot(reg$fitted.values, type = 'l')
 plot(t,res,type='l')
 lines(reg$fitted.values, type = 'l', col = "red")
+
+new_coef = reg$coefficients
+b0 = new_coef[1]
+A1 = new_coef[2]
+B1 = new_coef[3]
+A2 = new_coef[4]
+B2 = new_coef[5]
+new_pred = b0 + A1*cos(2*pi*new_time*spec$freq[index[1]]) +
+               B1*sin(2*pi*new_time*spec$freq[index[1]]) +
+               A2*cos(2*pi*new_time*spec$freq[index[2]]) +
+               B2*sin(2*pi*new_time*spec$freq[index[2]])
+plot(t,res,type = 'l', xlim = c(0,100))
+lines(t, reg$fitted.values, col = "blue")
+lines(new_time, new_pred, col="red")
+
+whole_pred_new = new_pred + smooth_pred
+
+plot(t, lol_t, type= "l", xlab = "", ylab = "", xlim = c(0,100))
+lines(new_time, whole_pred[,1], col="blue")
+lines(new_time, whole_pred_new, col="red")
+lines(new_time, num_pred, col = "brown")
