@@ -10,8 +10,7 @@ num_pred = as.numeric(data[,1])[85:96]
 dat = data[,2][1:84]
 dat_pred = data[,2][85:96]
 lol_t = ts(num, start = c(2009,11), freq = 12)
-plot(lol_t, main = "League of Legends",
-     sub = "made by Yunzhe Li", xlab = "time", ylab = "frequnce")
+plot(lol_t, main = "League of Legends", xlab = "time", ylab = "frequnce")
 
 # method 1
 # polynomial fitting
@@ -24,26 +23,26 @@ sapply(models, BIC)
 
 # choose power 5
 fitmodel = lm(lol_t~poly(t, degree = 5))
-plot(t, lol_t, type= "l", xlab = "", ylab = "" )
+plot(t, lol_t, type= "l", xlab = "time", ylab = "popularity", main = "original plot with power 5 polynormial fitting line")
 lines(fitmodel$fitted.values)
 
 # try to de-seaonality
 de_trend1 = lol_t-fitmodel$fitted.values
-plot(de_trend1, type = 'l')
+plot(de_trend1, type = 'l', main = "After Detrend")
 de_trend_matrix1 = matrix(c(rep(NA,10),de_trend1,rep(NA,2)), ncol = 12, byrow = TRUE)
 trend_mean1 = apply(t(de_trend_matrix1),1,function(x) mean(x, na.rm = TRUE))
 seasonality_matrix1 = rep(trend_mean1, nrow(de_trend_matrix1)-1)
-plot(t, seasonality_matrix1, type = "l")
+plot(t, seasonality_matrix1, type = "l", main = "Seasonality")
 de_seasonality1 = de_trend1 - seasonality_matrix1
 
-plot(t, lol_t, type= "l", xlab = "", ylab = "" )
+plot(t, lol_t, type= "l", xlab = "", ylab = "", main = "Treand With Seasonality")
 lines(seasonality_matrix1 + fitmodel$fitted.values, col = "red")
 
 # checking residules
 plot(t, de_seasonality1, type = "l") # the left part looks stationary
 qqnorm(de_seasonality1)
 qqline(de_seasonality1)
-hist(de_seasonality1)
+hist(de_seasonality1, main = "residual")
 
 # model selection
 acf(de_seasonality1)
@@ -81,26 +80,26 @@ selected_model_fixed = lm(lol_t~first_col+poly(t,degree = 5, raw = TRUE))
 AIC(selected_model)
 BIC(selected_model)
 
-plot(t, lol_t, type= "l", xlab = "", ylab = "" )
-lines(selected_model$fitted.values, col = "blue")
+plot(t, lol_t, type= "l", xlab = "", ylab = "", main = "Power 5 polynormial fitting with separeted spikes")
+lines(selected_model$fitted.values, col = "red")
 
-plot(selected_model$fitted.values, type = 'l')
+# plot(selected_model$fitted.values, type = 'l')
 
 # de-trend
 res = lol_t - selected_model$fitted.values
 
 # de-seasonality
-plot(res, type="l")
+plot(res, type="l", main = "After detrend")
 de_trend_matrix2 = matrix(c(rep(NA,10),res,rep(NA,2)), ncol = 12, byrow = TRUE)
 trend_mean2 = apply(t(de_trend_matrix2),1,function(x) mean(x, na.rm = TRUE))
 seasonality2 = rep(trend_mean2, nrow(de_trend_matrix2)-1)
-plot(t, seasonality2, type = "l")
+plot(t, seasonality2, type = "l", main = "Seasonality")
 de_seasonality2 = res - seasonality2
 
-plot(t, lol_t, type= "l", xlab = "", ylab = "" )
+plot(t, lol_t, type= "l", xlab = "", ylab = "", main = "Adding seasonality")
 lines(selected_model$fitted.values+seasonality2, col = "blue")
 
-plot(selected_model$fitted.values+seasonality2, type = "l")
+# plot(selected_model$fitted.values+seasonality2, type = "l")
 
 plot(t, de_seasonality2, type = 'l')
 
@@ -128,8 +127,9 @@ acf(de_seasonality2)
 pacf(de_seasonality2)
 
 # using package "forecast" to get pi's and theta's
+par(mfrow = c(1,1))
 fitModel = auto.arima(res)
-plot(res, type = "l")
+plot(res, type = "l", main = "Stationary Series with ARMA estimation")
 lines(fitModel$fitted, col = "red")
 
 # prediction for stationary part
@@ -148,7 +148,8 @@ V = matrix(trymodel$coefficients)
 smooth_pred = M%*%V
 whole_pred = sapply(1:3, function(k) rand_pred[,k]+smooth_pred)
 
-plot(t, lol_t, type= "l", xlab = "", ylab = "", xlim = c(0,100))
+
+plot(t, lol_t, type= "l", xlab = "", ylab = "", xlim = c(0,100), main = "Prediction")
 lines(new_time, whole_pred[,1], col="blue")
 lines(new_time, whole_pred[,2], col="red")
 lines(new_time, whole_pred[,3], col="red")
@@ -165,9 +166,11 @@ lines(new_time, num_pred, col = "brown")
 plot(t,res,type='l')
 new_res = num - trymodel$fitted.values
 spec = spec.pgram(new_res, taper = 0, log = "no")
-spec$freq
-spec$spec
 index = which(spec$spec>40)[-2]
+abline(v=spec$freq[index[1]], lty = 2)
+abline(v=spec$freq[index[2]], lty = 2)
+
+
 my_freq = spec$freq[index]
 lower = index - 1
 upper = index + 1
@@ -180,9 +183,12 @@ sin = sapply(my_freq, function(x) sin(2*pi*t*(x)))
 
 reg = lm(res~cos[,1]+sin[,1]+cos[,2]+sin[,2])
 plot(reg$fitted.values, type = 'l')
-plot(t,res,type='l')
+
+plot(t,res,type='l', main = "Stationary series with estimation")
 lines(reg$fitted.values, type = 'l', col = "red")
 
+
+# prediction
 new_coef = reg$coefficients
 b0 = new_coef[1]
 A1 = new_coef[2]
@@ -199,7 +205,8 @@ lines(new_time, new_pred, col="red")
 
 whole_pred_new = new_pred + smooth_pred
 
-plot(t, lol_t, type= "l", xlab = "", ylab = "", xlim = c(0,100))
+plot(t, lol_t, type= "l", xlab = "", ylab = "", xlim = c(0,100), main = "Predictoin")
 lines(new_time, whole_pred[,1], col="blue")
 lines(new_time, whole_pred_new, col="red")
 lines(new_time, num_pred, col = "brown")
+
