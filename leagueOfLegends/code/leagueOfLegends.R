@@ -3,7 +3,7 @@
 # Description:
 # Analysis of online game - League of Legends searched on Google
 # Data provider: Google Trend
-setwd("./file")
+setwd("class/sta137/leagueOfLegends/file/")
 data = readRDS("league")
 num = as.numeric(data[,1])[1:84]
 num_pred = as.numeric(data[,1])[85:96]
@@ -80,8 +80,8 @@ selected_model_fixed = lm(lol_t~first_col+poly(t,degree = 5, raw = TRUE))
 AIC(selected_model)
 BIC(selected_model)
 
-plot(t, lol_t, type= "l", xlab = "", ylab = "", main = "Power 5 polynormial fitting with separeted spikes")
-lines(selected_model$fitted.values, col = "red")
+plot(t, lol_t, type= "l", xlab = "time", ylab = "freq", main = "Power 5 Polynormial Fitting with Spikes")
+lines(selected_model$fitted.values)
 
 # plot(selected_model$fitted.values, type = 'l')
 
@@ -119,15 +119,16 @@ hist(de_seasonality2, breaks = 20)
 
 # checking the stationarity of the rest part
 plot(res, type = "l")
-par(mfrow = c(2,2))
-acf(res) # MA 1
-pacf(res) # AR 1
+par(mfrow = c(1,1))
+acf(res, main="ACF") # MA 1
+pacf(res, main="PACF") # AR 1
 
 acf(de_seasonality2)
 pacf(de_seasonality2)
 
 # using package "forecast" to get pi's and theta's
 par(mfrow = c(1,1))
+library(forecast)
 fitModel = auto.arima(res)
 plot(res, type = "l", main = "Stationary Series with ARMA estimation")
 lines(fitModel$fitted, col = "red")
@@ -165,7 +166,7 @@ lines(new_time, num_pred, col = "brown")
 # spectral analysis
 plot(t,res,type='l')
 new_res = num - trymodel$fitted.values
-spec = spec.pgram(new_res, taper = 0, log = "no")
+spec = spec.pgram(new_res, taper = 0, log = "no", main = "Raw Periodogram")
 index = which(spec$spec>40)[-2]
 abline(v=spec$freq[index[1]], lty = 2)
 abline(v=spec$freq[index[2]], lty = 2)
@@ -205,8 +206,42 @@ lines(new_time, new_pred, col="red")
 
 whole_pred_new = new_pred + smooth_pred
 
-plot(t, lol_t, type= "l", xlab = "", ylab = "", xlim = c(0,100), main = "Predictoin")
-lines(new_time, whole_pred[,1], col="blue")
+plot(t, lol_t, type= "l", xlim = c(0,100), main = "Predictoin", xlab = "time", ylab = "freq")
+# lines(new_time, whole_pred[,1], col="blue")
 lines(new_time, whole_pred_new, col="red")
-lines(new_time, num_pred, col = "brown")
+lines(new_time, num_pred)
 
+plot(t, selected_model_fixed$fitted.values+reg$fitted.values, type = 'l')
+plot(t, lol_t, type = "l")
+lines(t, selected_model_fixed$fitted.values+reg$fitted.values, type = 'l', col = "red")
+
+# further prediction
+new_time_more = c(new_time, new_time + 12)
+
+pred_s_more = forecast(fitModel, h=24, level = c(0.95))
+rand_pred_more = data.frame(t = pred_s_more$mean, t = pred_s_more$lower, t = pred_s_more$upper)
+
+M_more = matrix(c(rep(1,24), rep(spike_vector,2), new_time_more, new_time_more^2, new_time_more^3, new_time_more^4, new_time_more^5), ncol = 7)
+V_more = matrix(trymodel$coefficients)
+smooth_pred_more = M_more%*%V_more
+whole_pred_more = sapply(1:3, function(k) rand_pred_more[,k]+smooth_pred_more)
+
+new_pred_more = b0 + A1*cos(2*pi*new_time_more*spec$freq[index[1]]) +
+  B1*sin(2*pi*new_time_more*spec$freq[index[1]]) +
+  A2*cos(2*pi*new_time_more*spec$freq[index[2]]) +
+  B2*sin(2*pi*new_time_more*spec$freq[index[2]])
+whole_pred_new_more = new_pred_more + smooth_pred_more
+
+
+plot(t, lol_t, type= "l", xlim = c(0,110), main = "further Predictoin", xlab = "time", ylab = "freq")
+# lines(new_time, whole_pred[,1], col="blue")
+lines(new_time_more, whole_pred_new_more, col="red")
+lines(new_time, num_pred)
+
+
+plot(t, lol_t, type= "l", xlab = "", ylab = "", xlim = c(0,110), main = "further Prediction")
+lines(new_time_more, whole_pred_more[,1], col="blue")
+lines(new_time_more, whole_pred_more[,2], col="red")
+lines(new_time_more, whole_pred_more[,3], col="red")
+
+lines(new_time, num_pred)
