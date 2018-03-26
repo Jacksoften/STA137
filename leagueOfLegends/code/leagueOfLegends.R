@@ -245,3 +245,20 @@ lines(new_time_more, whole_pred_more[,2], col="red")
 lines(new_time_more, whole_pred_more[,3], col="red")
 
 lines(new_time, num_pred)
+
+
+## new update.
+## try to also use regression model fitting championship month spikes
+championShip = c(sprintf("201%d-09", 3:4), sprintf("201%d-10", c(2:3,5:6)))
+champ_indices = as.vector(sapply(championShip, function(x) grep(x,dat)))
+zeroes = rep(0,length(num))
+one=two=three=four=five=six=zeroes
+one[champ_indices[1]] = 1
+two[champ_indices[2]] = 1
+three[champ_indices[3]] = 1
+four[champ_indices[4]] = 1
+five[champ_indices[5]] = 1
+six[champ_indices[6]] = 1
+fancy_model = lm(lol_t~one+two+three+four+five+six+poly(t,degree = 5,raw=TRUE))
+
+as.vector(fancy_model$coefficients)[2:7]

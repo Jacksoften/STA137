@@ -1,4 +1,6 @@
 # STA137
+2017 Fall.
 # Homework
-# Analysis of the populirity of a multiplayer online battle arena video game, League of Legends.
-# Data from Google Trend.
+R code for some homework
+# League of Legends
+An anlysis of popularity of a online game league of legends with time series
