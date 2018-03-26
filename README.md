@@ -3,4 +3,5 @@
 # Homework
 R code for some homework
 # League of Legends
-An anlysis of popularity of a online game league of legends with time series
+An anlysis of popularity of a online game league of legends with time series  
+[Analysis](https://github.com/Jacksoften/STA137/blob/master/leagueOfLegends/file/137-final-project.pdf): Analysis Report
