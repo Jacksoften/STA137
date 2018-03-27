@@ -3,25 +3,29 @@
 # Description:
 # Analysis of online game - League of Legends searched on Google
 # Data provider: Google Trend
-setwd("class/sta137/leagueOfLegends/file/")
-data = readRDS("league")
-num = as.numeric(data[,1])[1:84]
-num_pred = as.numeric(data[,1])[85:96]
-dat = data[,2][1:84]
-dat_pred = data[,2][85:96]
-lol_t = ts(num, start = c(2009,11), freq = 12)
+data = readRDS("file/league")
+
+# using the first 90% data train our time series model,
+# and using the last 10% data to test the model
+num_train = as.numeric(data[,1])[1:84]
+num_test = as.numeric(data[,1])[85:96]
+dat_train = data[,2][1:84]
+dat_test = data[,2][85:96]
+
+# transform to built-in time-series data
+lol_t = ts(num_train, start = c(2009,11), freq = 12)
 plot(lol_t, main = "League of Legends", xlab = "time", ylab = "frequnce")
 
 # method 1
 # polynomial fitting
 
 # checking different models
-t = 1:length(num)
+t = 1:length(num_train)
 models = lapply(1:6, function(x) lm(lol_t~poly(t, degree = x)))
 sapply(models, AIC)
 sapply(models, BIC)
 
-# choose power 5
+# choose power 5 by AIC, BIC
 fitmodel = lm(lol_t~poly(t, degree = 5))
 plot(t, lol_t, type= "l", xlab = "time", ylab = "popularity", main = "original plot with power 5 polynormial fitting line")
 lines(fitmodel$fitted.values)
@@ -70,9 +74,9 @@ fitted(fitmodel) + unlist(seasonality_matrix1)
 
 # design matrix.
 championShip = c(sprintf("201%d-09", 3:4), sprintf("201%d-10", c(2:3,5:6)))
-champ_indices = as.vector(sapply(championShip, function(x) grep(x,dat)))
-num[champ_indices]
-first_col = rep(0,length(num))
+champ_indices = as.vector(sapply(championShip, function(x) grep(x,dat_train)))
+num_train[champ_indices]
+first_col = rep(0,length(num_train))
 first_col[champ_indices] = 1
 selected_model = lm(lol_t~first_col+poly(t,degree = 5))
 selected_model_fixed = lm(lol_t~first_col+poly(t,degree = 5, raw = TRUE)) 
@@ -138,7 +142,7 @@ pred_s = forecast(fitModel, h=12, level = c(0.95))
 rand_pred = data.frame(t = pred_s$mean, t = pred_s$lower, t = pred_s$upper)
 
 # oct 2017 is another championship month
-new_time = (length(num)+1):(length(num)+12)
+new_time = (length(num_train)+1):(length(num_train)+12)
 new_data = data.frame(t = new_time)
 
 spike_vector = c(rep(0,11),1) # Oct. is championship month, which is the last one in prediciton month
@@ -155,7 +159,7 @@ lines(new_time, whole_pred[,1], col="blue")
 lines(new_time, whole_pred[,2], col="red")
 lines(new_time, whole_pred[,3], col="red")
 
-lines(new_time, num_pred, col = "brown")
+lines(new_time, num_test, col = "brown")
 
 # not a good example
 # some = auto.arima(num)
@@ -165,7 +169,7 @@ lines(new_time, num_pred, col = "brown")
 
 # spectral analysis
 plot(t,res,type='l')
-new_res = num - trymodel$fitted.values
+new_res = num_train - trymodel$fitted.values
 spec = spec.pgram(new_res, taper = 0, log = "no", main = "Raw Periodogram")
 index = which(spec$spec>40)[-2]
 abline(v=spec$freq[index[1]], lty = 2)
@@ -209,7 +213,7 @@ whole_pred_new = new_pred + smooth_pred
 plot(t, lol_t, type= "l", xlim = c(0,100), main = "Predictoin", xlab = "time", ylab = "freq")
 # lines(new_time, whole_pred[,1], col="blue")
 lines(new_time, whole_pred_new, col="red")
-lines(new_time, num_pred)
+lines(new_time, num_test)
 
 plot(t, selected_model_fixed$fitted.values+reg$fitted.values, type = 'l')
 plot(t, lol_t, type = "l")
@@ -244,14 +248,14 @@ lines(new_time_more, whole_pred_more[,1], col="blue")
 lines(new_time_more, whole_pred_more[,2], col="red")
 lines(new_time_more, whole_pred_more[,3], col="red")
 
-lines(new_time, num_pred)
+lines(new_time, num_test)
 
 
 ## new update.
 ## try to also use regression model fitting championship month spikes
 championShip = c(sprintf("201%d-09", 3:4), sprintf("201%d-10", c(2:3,5:6)))
-champ_indices = as.vector(sapply(championShip, function(x) grep(x,dat)))
-zeroes = rep(0,length(num))
+champ_indices = as.vector(sapply(championShip, function(x) grep(x,dat_train)))
+zeroes = rep(0,length(num_train))
 one=two=three=four=five=six=zeroes
 one[champ_indices[1]] = 1
 two[champ_indices[2]] = 1
@@ -260,5 +264,5 @@ four[champ_indices[4]] = 1
 five[champ_indices[5]] = 1
 six[champ_indices[6]] = 1
 fancy_model = lm(lol_t~one+two+three+four+five+six+poly(t,degree = 5,raw=TRUE))
-
 as.vector(fancy_model$coefficients)[2:7]
+

@@ -1,0 +1,63 @@
+---
+title: "Untitled"
+author: "Jack"
+date: "November 3, 2017"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r}
+arima22 = 
+  arima.sim(list(order = c(2,0,2), ar=c(0.2,-0.3), ma=c(-.5,.3)), n = 100)
+plot.ts(arima22, main = "ARMA(2,2)")
+```
+
+```{r}
+arima41 = 
+  arima.sim(list(order = c(4,0,1), ar=c(-0.2,-0.3,0.5,0.2), ma=0.6), n = 100)
+plot.ts(arima41, main = "ARMA(4,1)")
+```
+
+```{r}
+arima14 = 
+  arima.sim(list(order = c(1,0,4), ar=c(0.6), ma=c(-0.2,-.3,.5,.2)), n=100)
+plot.ts(arima14, main = "ARMA(1,4)")
+```
+```{r}
+ar1neg = arima.sim(list(order=c(1,0,0), ar=-0.9), n = 100)
+plot.ts(ar1neg)
+```
+```{r}
+ar1pos = arima.sim(list(order=c(1,0,0), ar=0.9), n = 100)
+plot.ts(ar1pos)
+```
+```{r}
+ar2 = arima.sim(list(order=c(2,0,0), ar=c(0.5, 0.3)), n = 100)
+plot.ts(ar2)
+```
+```{r}
+ar5 = arima.sim(list(order=c(1,0,0), ar=0.9), n = 100)
+plot.ts(ar5)
+```
+This is not working.
+Lets write down the AR(2) equation of this one:
+xt = 0.5xt-1 + 0.6xt-2 + zt
+Then our pi function is:
+pi(z) = 1 - 0.5z - 0.6z^2
+We can set pi(z) = 0, then absulote value of at least one of the roots is larger than 1.
+So linear process breaks.
+The series is not stationary.
+
+```{r}
+ar5 = arima.sim(list(order=c(5,0,0), ar=c(0.11, 0.12, 0.13, 0.2     ,0.2)), n = 100)
+plot.ts(ar5) 
+```
+
+```{r}
+plot.ts(arima.sim(list(order=c(0,0,2), ma = c(2,2)), n = 100))
+```
