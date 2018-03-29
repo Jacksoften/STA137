@@ -6,5 +6,5 @@ Analysis of the populirity of a multiplayer online battle arena video game, Leag
 
 ## TODO
 1. clean code
-2. clean document
+2. modify commends
 3. Using web parser for collecting data
