@@ -8,3 +8,4 @@ Analysis of the populirity of a multiplayer online battle arena video game, Leag
 1. clean code
 2. modify commends
 3. Using web parser for collecting data
+   useful package: gtrendsR
