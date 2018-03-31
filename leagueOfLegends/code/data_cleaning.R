@@ -1,7 +1,6 @@
 # cleaning the data set
-setwd("/home/yunzheli/class/sta137/leagueOfLegends/")
 
-lol = read.table("leagueoflegends.csv", stringsAsFactors = FALSE, skip = 3)
+lol = read.table("../data/leagueoflegends.csv", stringsAsFactors = FALSE, skip = 3)
 # dummy variable for championship month
 
 # clean data
